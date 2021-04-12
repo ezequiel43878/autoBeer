@@ -1,4 +1,4 @@
-/// NOTA - SISTEMA EN SECCIONES A: AGUA PARA MACERAR (74°) - B - MACERANDO (67°) - C RECIRCULADO : 78°
+/// NOTA - SISTEMA EN SECCIONES A: AGUA PARA MACERAR (74°) - B - MACERANDO (67°) - C RECIRCULADO : 78° - D COCCION 100°
 
 #include <OneWire.h>                
 #include <DallasTemperature.h>
@@ -7,7 +7,7 @@
 
 // DECLARO PINES CON I/O
 #define LED     A4
-#define ALERTA  A2
+#define ALERTA  1
 
 OneWire ourWire(A5);                //Se establece el pin 2  como bus OneWire
 DallasTemperature sensors(&ourWire); //Se declara una variable u objeto para nuestro sensor
@@ -28,12 +28,14 @@ char keys[rowsCount][columsCount] = {
 
 float temp = 0;
 int tempPreMacerado = 74;
-int tempMacerado = 23;
+int tempMacerado = 67;
 int tempPostMacerado = 78;
+int tempCoccion = 100;
 
 bool preMacerado = false;
 bool macerado = false;
 bool postMacerado = false;
+bool coccion = false;
 
 const byte rowPins[rowsCount] = { 0, A3, 2, 3 };
 const byte columnPins[columsCount] = { 4, 5, 6, 7 }; 
@@ -51,9 +53,10 @@ void setup() {
 void aguaPreMacerado();  // Ingresa con la tecla A
 void aguaMacerado();     // Ingresa con la tecla B
 void aguaPostMacerado();  // Ingresa con la tecla C
+void aguaCoccion();   // Ingresa con la tecla D
  
 void loop() {
-
+  
   sensors.requestTemperatures();   //Se envía el comando para leer la temperatura
   temp= sensors.getTempCByIndex(0); //Se obtiene la temperatura en ºC
 
@@ -68,12 +71,20 @@ void loop() {
     case 'A' : preMacerado = true;
                macerado = false;
                postMacerado = false;
+               coccion = false;
                break;
     case 'B' : macerado = true;
                preMacerado = false;
                postMacerado = false;
+               coccion = false;
                break;
     case 'C' : postMacerado = true;
+               macerado = false;
+               preMacerado = false;
+               coccion = false;
+               break;
+    case 'D' : coccion = true;
+               postMacerado = false;
                macerado = false;
                preMacerado = false;
                break;
@@ -83,6 +94,7 @@ void loop() {
   aguaPreMacerado();
   aguaMacerado();
   aguaPostMacerado();
+  aguaCoccion();
 
 }
 
@@ -95,9 +107,16 @@ void aguaPreMacerado(){
        lcd.print("    ");
        if (temp <= tempPreMacerado){
           digitalWrite(LED, LOW);
+          
         }
-       else
-          digitalWrite(LED, HIGH); 
+       else{
+          digitalWrite(LED, HIGH);
+          digitalWrite(LED, HIGH);
+          digitalWrite(ALERTA, HIGH);
+          delay(500);
+          digitalWrite(ALERTA, LOW);
+          delay(500);
+       }
     }           
   }
 
@@ -110,6 +129,10 @@ void aguaMacerado(){
        lcd.print("    ");
        if (temp <= tempMacerado-2 || temp >= tempMacerado+2){
           digitalWrite(LED, HIGH);
+          digitalWrite(ALERTA, HIGH);
+          delay(500);
+          digitalWrite(ALERTA, LOW);
+          delay(500);
         }
        else
           digitalWrite(LED, LOW); 
@@ -126,7 +149,32 @@ void aguaPostMacerado(){
        if (temp <= tempPostMacerado){
           digitalWrite(LED, LOW);
         }
-       else
-          digitalWrite(LED, HIGH); 
+       else{
+          digitalWrite(LED, HIGH);
+          digitalWrite(ALERTA, HIGH);
+          delay(500);
+          digitalWrite(ALERTA, LOW);
+          delay(500);
+       } 
+    }           
+  }
+
+void aguaCoccion(){
+   if(coccion){
+       lcd.setCursor(0, 0);
+       lcd.display();
+       lcd.print("D:Coccion ");
+       lcd.print(tempCoccion);
+       lcd.print("       ");
+       if (temp <= tempCoccion){
+          digitalWrite(LED, LOW);
+        }
+       else{
+          digitalWrite(LED, HIGH);
+          digitalWrite(ALERTA, HIGH);
+          delay(500);
+          digitalWrite(ALERTA, LOW);
+          delay(500);
+       } 
     }           
   }
